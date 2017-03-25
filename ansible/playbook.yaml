@@ -1,0 +1,61 @@
+---
+
+- hosts: all
+  become: true
+  become_method: sudo
+  #vars:
+  #mysql_root_pass: vagrant
+
+  tasks:
+
+  - name: install https transport
+    apt:
+      pkg: apt-transport-https
+      state: latest
+      update_cache: true
+
+  - name: add nodejs key
+    apt_key:
+      url: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+      state: present
+
+  - name: install nodejs repository
+    apt_repository:
+      repo: "deb https://deb.nodesource.com/node_6.x jessie main"
+      filename: nodesource
+      state: present
+
+  - name: install nodejs repository src
+    apt_repository:
+      repo: "deb-src https://deb.nodesource.com/node_6.x jessie main"
+      filename: nodesource
+      state: present
+
+  - name: Install the erlang package
+    apt:
+      deb: https://packages.erlang-solutions.com/erlang-solutions_1.0_all.deb
+
+  - name: install required packages
+    apt: pkg={{ item }} state=latest update_cache=true
+    with_items:
+      - python-psycopg2
+      - postgresql-9.4
+      - postgresql-client-9.4
+      - esl-erlang
+      - elixir
+      - nodejs
+      - inotify-tools
+
+  - name: upgrade the machine
+    apt:
+      upgrade: full
+
+  - name: create postres user
+    postgresql_user:
+      name: vagrant
+      password: vagrant
+      role_attr_flags: CREATEDB,LOGIN
+    become: true
+    become_user: postgres
+
+...
